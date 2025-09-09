@@ -1,0 +1,59 @@
+﻿@page "/products"
+@inject IHttpClientFactory HttpClientFactory
+
+<h3>Products</h3>
+
+@if (loading)
+{
+    <p>Loading...</p>
+}
+else if (error != null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+else if (products != null)
+{
+    @foreach (var product in products)
+    {
+        <div class="card m-2">
+            <div class="card-body">
+                <h5>@product.Name</h5>
+                <p>@product.Description</p>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<Product>? products;
+    private string? error;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var httpClient = HttpClientFactory.CreateClient("api");
+
+           
+            products = await httpClient.GetFromJsonAsync<List<Product>>("api/product");
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to load products: {ex.Message}";
+            Console.WriteLine($"Error: {ex}");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+
+    public class Product
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        
+    }
+}
